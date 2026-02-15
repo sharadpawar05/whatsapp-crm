@@ -5,16 +5,25 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import AddContactDialog from '@/components/AddContactDialog'
 import ContactCard from '@/components/ContactCard'
+import ContactDetailDialog from '@/components/ContactDetailDialog'
 
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export default function ContactsPage() {
   const { user } = useAuth()
+
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState('all')
+  const [selectedContact, setSelectedContact] = useState(null) // 👈 Added
 
   useEffect(() => {
     if (user) fetchContacts()
@@ -38,8 +47,8 @@ export default function ContactsPage() {
 
   const filteredContacts = contacts.filter((contact) => {
     const matchesSearch =
-      contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      contact.phone.includes(search)
+      contact.name?.toLowerCase().includes(search.toLowerCase()) ||
+      contact.phone?.includes(search)
 
     const matchesTag =
       selectedTag === 'all' ||
@@ -52,6 +61,7 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Contacts</h1>
         <AddContactDialog onContactAdded={fetchContacts} />
@@ -93,10 +103,19 @@ export default function ContactsPage() {
               key={contact.id}
               contact={contact}
               onDelete={handleDelete}
+              onClick={() => setSelectedContact(contact)} // 👈 Added
             />
           ))}
         </div>
       )}
+
+      {/* Detail Dialog */}
+      <ContactDetailDialog
+        contact={selectedContact}
+        open={!!selectedContact}
+        onClose={() => setSelectedContact(null)}
+        onUpdate={fetchContacts}
+      />
     </div>
   )
 }
