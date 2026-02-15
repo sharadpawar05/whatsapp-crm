@@ -1,6 +1,6 @@
 'use client'
 
-import { Phone, MessageCircle, Copy, Trash2 } from 'lucide-react'
+import { Phone, MessageCircle, Copy, Trash2, MoreVertical } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,49 +23,71 @@ const TAG_COLORS = {
   lost: 'bg-gray-100 text-gray-700',
 }
 
-export default function ContactCard({ contact, onDelete }) {
-  const handleCall = () => {
+export default function ContactCard({ contact, onDelete, onClick }) {
+  const handleCall = (e) => {
+    e.stopPropagation()
     window.location.href = `tel:${contact.phone}`
   }
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = (e) => {
+    e.stopPropagation()
     const phone = contact.phone.replace(/[^0-9]/g, '')
     window.open(`https://wa.me/${phone}`, '_blank')
   }
 
-  const handleCopy = () => {
+  const handleCopy = (e) => {
+    e.stopPropagation()
     navigator.clipboard.writeText(contact.phone)
   }
 
   return (
-    <Card className="hover:shadow-lg transition">
+    <Card 
+      onClick={onClick} 
+      className="hover:shadow-lg transition cursor-pointer group relative"
+    >
       <CardContent className="p-5 space-y-4">
-        <div>
-          <h3 className="font-semibold text-lg">{contact.name}</h3>
-          <p className="text-sm text-muted-foreground">{contact.phone}</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-semibold text-lg">{contact.name}</h3>
+            <p className="text-sm text-muted-foreground">{contact.phone}</p>
+          </div>
+
+          {/* Requirement: Click Edit (3 dots) -> Opens Modal */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 hover:bg-slate-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick(); // Triggers the detail/edit modal
+            }}
+          >
+            <MoreVertical className="w-4 h-4 text-slate-500" />
+          </Button>
         </div>
 
+        {/* Tag Support (Including fallback for custom tags like "VIP") */}
         {contact.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {contact.tags.map((tag) => (
               <span
                 key={tag}
-                className={`px-2 py-1 text-xs rounded-full ${
-                  TAG_COLORS[tag] || 'bg-gray-100'
+                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${
+                  TAG_COLORS[tag] || 'bg-purple-100 text-purple-700'
                 }`}
               >
-                {tag}
+                {tag === 'hot-lead' ? `🔥 ${tag}` : tag}
               </span>
             ))}
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleCall}>
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" size="sm" className="flex-1" onClick={handleCall}>
             <Phone className="w-4 h-4 mr-1" /> Call
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleWhatsApp}>
+          <Button variant="outline" size="sm" className="flex-1" onClick={handleWhatsApp}>
             <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
           </Button>
 
@@ -74,26 +96,28 @@ export default function ContactCard({ contact, onDelete }) {
           </Button>
 
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="icon">
+            <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="outline" size="icon" className="text-red-500 hover:bg-red-50 border-red-100">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </AlertDialogTrigger>
 
-            <AlertDialogContent>
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Delete {contact.name}?
-                </AlertDialogTitle>
+                <AlertDialogTitle>Delete {contact.name}?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone.
+                  This will remove the contact and all their notes permanently.
                 </AlertDialogDescription>
               </AlertDialogHeader>
 
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => onDelete(contact)}
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(contact);
+                  }}
                 >
                   Delete
                 </AlertDialogAction>
