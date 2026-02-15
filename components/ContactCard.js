@@ -1,6 +1,6 @@
 'use client'
 
-import { Phone, MessageCircle, Copy, Trash2, MoreVertical } from 'lucide-react'
+import { Phone, MessageCircle, Copy, Trash2, MoreVertical,Bell } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,8 +41,8 @@ export default function ContactCard({ contact, onDelete, onClick }) {
   }
 
   return (
-    <Card 
-      onClick={onClick} 
+    <Card
+      onClick={onClick}
       className="hover:shadow-lg transition cursor-pointer group relative"
     >
       <CardContent className="p-5 space-y-4">
@@ -50,12 +50,19 @@ export default function ContactCard({ contact, onDelete, onClick }) {
           <div>
             <h3 className="font-semibold text-lg">{contact.name}</h3>
             <p className="text-sm text-muted-foreground">{contact.phone}</p>
+
           </div>
+          {contact.next_followup && (
+            <div className="flex items-center gap-1 text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded w-fit">
+              <Bell className="w-3 h-3" />
+              Follow-up: {new Date(contact.next_followup).toLocaleDateString()}
+            </div>
+          )}
 
           {/* Requirement: Click Edit (3 dots) -> Opens Modal */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-8 w-8 hover:bg-slate-100"
             onClick={(e) => {
               e.stopPropagation();
@@ -72,9 +79,8 @@ export default function ContactCard({ contact, onDelete, onClick }) {
             {contact.tags.map((tag) => (
               <span
                 key={tag}
-                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${
-                  TAG_COLORS[tag] || 'bg-purple-100 text-purple-700'
-                }`}
+                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${TAG_COLORS[tag] || 'bg-purple-100 text-purple-700'
+                  }`}
               >
                 {tag === 'hot-lead' ? `🔥 ${tag}` : tag}
               </span>

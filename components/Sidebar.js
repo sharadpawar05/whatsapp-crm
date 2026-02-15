@@ -10,13 +10,15 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Bell
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Contacts', href: '/dashboard/contacts', icon: Users },
+  { name: 'Reminders', href: '/dashboard/reminders', icon: Bell },
   { name: 'Templates', href: '/dashboard/templates', icon: MessageSquare },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
