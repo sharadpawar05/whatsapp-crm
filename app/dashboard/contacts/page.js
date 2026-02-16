@@ -1,11 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Papa from 'papaparse'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import AddContactDialog from '@/components/AddContactDialog'
 import ContactCard from '@/components/ContactCard'
 import ContactDetailDialog from '@/components/ContactDetailDialog'
+import ImportCSVDialog from '@/components/ImportCSVDialog'
 
 import { Input } from '@/components/ui/input'
 import {
@@ -29,14 +33,51 @@ export default function ContactsPage() {
     if (user) fetchContacts()
   }, [user])
 
+  const handleExport = () => {
+    const exportData = filteredContacts.map(c => ({
+      Name: c.name,
+      Phone: c.phone,
+      Tags: c.tags?.join(', ') || '',
+      Notes: c.notes?.replace(/---/g, '') || '',
+      Date_Added: new Date(c.created_at).toLocaleDateString()
+    }))
+
+    const csv = Papa.unparse(exportData)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `crm_contacts_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const fetchContacts = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('contacts')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
-    setContacts(data || [])
+    if (error) {
+      console.error("Error fetching:", error)
+      return
+    }
+
+    const updatedData = data || []
+    setContacts(updatedData)
+
+    // ✨ THE FIX: Update the selected contact so the modal refreshes immediately
+    if (selectedContact) {
+      const freshContactData = updatedData.find(c => c.id === selectedContact.id)
+      if (freshContactData) {
+        setSelectedContact(freshContactData)
+      }
+    }
+
     setLoading(false)
   }
 
@@ -108,6 +149,15 @@ export default function ContactsPage() {
           ))}
         </div>
       )}
+
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} className="gap-2">
+            <Download className="w-4 h-4" /> Export CSV
+          </Button>
+          <ImportCSVDialog onImportComplete={fetchContacts} />
+        </div>
+      </div>
 
       {/* Detail Dialog */}
       <ContactDetailDialog
