@@ -5,13 +5,15 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import AddTemplateDialog from '@/components/AddTemplateDialog'
 import TemplateCard from '@/components/TemplateCard'
-import { MessageSquare, LayoutGrid, Filter } from 'lucide-react'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { MessageSquare, LayoutGrid, Filter, MessageSquarePlus } from 'lucide-react'
+import { toast } from "sonner" // 👈 Added Sonner
+import { Skeleton } from "@/components/ui/skeleton" // 👈 Added Skeleton
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select'
 
 export default function TemplatesPage() {
@@ -25,8 +27,8 @@ export default function TemplatesPage() {
   }, [user])
 
   const fetchTemplates = async () => {
-    setLoading(true)
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('templates')
         .select('*')
@@ -36,26 +38,32 @@ export default function TemplatesPage() {
       if (error) throw error
       setTemplates(data || [])
     } catch (error) {
-      console.error('Error fetching templates:', error.message)
+      toast.error("Failed to load templates", {
+        description: error.message
+      })
     } finally {
       setLoading(false)
     }
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this template?')) return
-    
+    // Note: In a production app, you might use a Radix/Shadcn UI Alert Dialong instead of confirm()
+    // For now, we'll keep the logic but upgrade the feedback
     try {
       const { error } = await supabase.from('templates').delete().eq('id', id)
       if (error) throw error
-      setTemplates(templates.filter(t => t.id !== id))
+
+      setTemplates(prev => prev.filter(t => t.id !== id))
+      toast.success("Template deleted")
     } catch (error) {
-      alert('Error deleting template: ' + error.message)
+      toast.error("Delete failed", {
+        description: error.message
+      })
     }
   }
 
-  const filteredTemplates = filter === 'all' 
-    ? templates 
+  const filteredTemplates = filter === 'all'
+    ? templates
     : templates.filter(t => t.category === filter)
 
   return (
@@ -70,7 +78,7 @@ export default function TemplatesPage() {
             Create and manage reusable messages with {`{name}`} variables.
           </p>
         </div>
-        
+
         <AddTemplateDialog onTemplateAdded={fetchTemplates} />
       </div>
 
@@ -91,24 +99,38 @@ export default function TemplatesPage() {
           </SelectContent>
         </Select>
         <div className="text-xs text-slate-400 ml-auto">
-          {filteredTemplates.length} templates found
+          {!loading && `${filteredTemplates.length} templates found`}
         </div>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-40 bg-slate-100 animate-pulse rounded-xl" />
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="p-5 border rounded-xl bg-white space-y-4">
+              <div className="flex justify-between">
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-6 rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Skeleton className="h-9 flex-1 rounded-md" />
+                <Skeleton className="h-9 w-9 rounded-md" />
+              </div>
+            </div>
           ))}
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-slate-200 rounded-xl p-12 text-center">
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-xl p-12 text-center animate-in fade-in zoom-in">
           <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <LayoutGrid className="w-8 h-8 text-slate-300" />
           </div>
           <h3 className="text-lg font-semibold text-slate-700">No templates found</h3>
           <p className="text-slate-500 max-w-sm mx-auto mt-2">
-            {filter !== 'all' 
+            {filter !== 'all'
               ? `You don't have any templates in the ${filter} category yet.`
               : "Start by creating your first template to save time on repetitive messages."}
           </p>
@@ -116,13 +138,23 @@ export default function TemplatesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
-            <TemplateCard 
-              key={template.id} 
-              template={template} 
-              onDelete={handleDelete} 
+            <TemplateCard
+              key={template.id}
+              template={template}
+              onDelete={() => handleDelete(template.id)}
             />
           ))}
         </div>
+      )}
+
+      {filteredTemplates.length === 0 && !loading && (
+        <EmptyState
+          illustration="✍️"
+          title="Write your first template"
+          description="Tired of typing the same message? Create templates with {name} variables to personalize your outreach in seconds."
+          actionLabel="Create Template"
+          onAction={() => setOpenTemplateDialog(true)}
+        />
       )}
     </div>
   )
