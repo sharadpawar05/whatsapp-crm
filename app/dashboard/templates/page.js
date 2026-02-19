@@ -146,16 +146,6 @@ export default function TemplatesPage() {
           ))}
         </div>
       )}
-
-      {filteredTemplates.length === 0 && !loading && (
-        <EmptyState
-          illustration="✍️"
-          title="Write your first template"
-          description="Tired of typing the same message? Create templates with {name} variables to personalize your outreach in seconds."
-          actionLabel="Create Template"
-          onAction={() => setOpenTemplateDialog(true)}
-        />
-      )}
     </div>
   )
 }
