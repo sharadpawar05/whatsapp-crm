@@ -18,19 +18,26 @@ export default function UseTemplateDialog({ contact, open, onClose }) {
     setTemplates(data || [])
   }
 
-  const handleUse = (content) => {
-    // THE SMART REPLACE LOGIC
-    let finalMessage = content
-      .replace(/{name}/g, contact.name || 'friend')
-      .replace(/{phone}/g, contact.phone || '')
+const handleUse = (content) => {
+  let finalMessage = content
+    .replace(/\{\s*name\s*\}/gi, contact.name || 'there')
+    .replace(/\{\s*phone\s*\}/gi, contact.phone || '');
 
-    navigator.clipboard.writeText(finalMessage)
-    
-    // Open WhatsApp automatically
-    const waUrl = `https://wa.me/${contact.phone.replace(/\D/g,'')}?text=${encodeURIComponent(finalMessage)}`
-    window.open(waUrl, '_blank')
-    onClose()
-  }
+  finalMessage = finalMessage.replace(/\{|\}/g, '');
+
+  navigator.clipboard.writeText(finalMessage);
+  
+  // --- THE DIRECT WEB FIX ---
+  // Using web.whatsapp.com/send instead of api.whatsapp.com 
+  // forces the browser to target the web interface directly.
+  const cleanPhone = contact.phone.replace(/\D/g,'');
+  const encodedMsg = encodeURIComponent(finalMessage);
+  
+  const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+  
+  window.open(waUrl, '_blank');
+  onClose();
+}
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

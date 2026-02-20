@@ -14,9 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// --- CHANGE THIS SECTION ---
 export const metadata: Metadata = {
-  title: 'WhatsApp CRM',
-  description: 'Organize your WhatsApp leads',
+  title: 'LeadFlow', // This updates the browser tab
+  description: 'The simple CRM to track leads, schedule follow-ups, and close deals on WhatsApp.',
 };
 
 export default function RootLayout({
@@ -25,13 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-slate-900`}
       >
         <AuthProvider>
           {children}
-          <Toaster position="top-center" richColors /> 
+          <Toaster position="top-center" richColors closeButton /> 
         </AuthProvider>
       </body>
     </html>

@@ -3,67 +3,86 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Copy, Trash2, Check } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { createPortal } from 'react-dom' // We use portal to show alert over everything
+import { Copy, Trash2, Check, MessageCircle } from 'lucide-react'
 
 export default function TemplateCard({ template, onDelete }) {
     const [showCopiedAlert, setShowCopiedAlert] = useState(false)
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(template.content)
+        // --- THE FIX ---
+        // This Regex looks for {anything} and replaces it with the text inside.
+        // e.g. "Hi {Sharad Pawar}" becomes "Hi Sharad Pawar"
+        const cleanContent = template.content.replace(/\{([^}]+)\}/g, '$1');
+        
+        navigator.clipboard.writeText(cleanContent)
         setShowCopiedAlert(true)
         setTimeout(() => setShowCopiedAlert(false), 2000)
     }
 
     return (
         <>
-            {/* 1. THE ALERT: Fixed at top of screen */}
+            {/* 1. THE ALERT: Modern Toast-style */}
             {showCopiedAlert && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-auto animate-in fade-in zoom-in duration-300">
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-auto animate-in slide-in-from-top-4 duration-300">
                     <div className="bg-slate-900 shadow-2xl rounded-full px-6 py-2.5 flex items-center gap-3 border border-slate-800">
-                        <Check className="h-4 w-4 text-green-500 shrink-0" />
-                        <span className="text-white text-sm font-semibold whitespace-nowrap">
-                            Copied to clipboard!
+                        <div className="bg-green-500 rounded-full p-0.5">
+                            <Check className="h-3 w-3 text-slate-900 stroke-[3px]" />
+                        </div>
+                        <span className="text-white text-sm font-bold whitespace-nowrap">
+                            Ready to paste! 🚀
                         </span>
                     </div>
                 </div>
             )}
 
             {/* 2. THE CARD */}
-            <Card className="hover:shadow-md transition-shadow relative">
+            <Card className="group hover:border-green-200 transition-all duration-300 relative overflow-hidden shadow-sm hover:shadow-md">
                 <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-                    <CardTitle className="text-sm font-bold truncate pr-4">
-                        {template.title}
-                    </CardTitle>
-                    <span className="text-[10px] uppercase bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">
+                    <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-green-600" />
+                        <CardTitle className="text-sm font-bold truncate max-w-[120px]">
+                            {template.title}
+                        </CardTitle>
+                    </div>
+                    <span className="text-[10px] uppercase bg-green-50 px-2 py-0.5 rounded text-green-700 font-black tracking-wider">
                         {template.category}
                     </span>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 space-y-4">
-                    <p className="text-xs text-slate-600 line-clamp-3 font-mono bg-slate-50 p-2 rounded border border-dashed">
-                        {template.content}
-                    </p>
+
+                <CardContent className="p-4 pt-2 space-y-4">
+                    {/* Visual Fix: Styled to look like a WhatsApp Bubble */}
+                    <div className="relative bg-[#E7FFDB] p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl border-l-2 border-green-400">
+                        <p className="text-[13px] text-slate-700 leading-relaxed line-clamp-4 font-medium italic">
+                            {template.content}
+                        </p>
+                        {/* Little triangle for bubble effect */}
+                        <div className="absolute top-0 -left-2 w-0 h-0 border-t-[8px] border-t-[#E7FFDB] border-l-[8px] border-l-transparent"></div>
+                    </div>
+
                     <div className="flex gap-2">
                         <Button
-                            variant={showCopiedAlert ? "default" : "outline"}
+                            variant="outline"
                             size="sm"
-                            className={`flex-1 h-8 text-xs transition-colors ${showCopiedAlert ? 'bg-green-600 hover:bg-green-600' : ''}`}
+                            className={`flex-1 h-9 text-xs font-bold rounded-lg transition-all ${
+                                showCopiedAlert 
+                                ? 'bg-green-600 text-white border-green-600' 
+                                : 'hover:bg-slate-50 text-slate-600 border-slate-200'
+                            }`}
                             onClick={copyToClipboard}
                         >
                             {showCopiedAlert ? (
-                                <><Check className="w-3 h-3 mr-1" /> Copied!</>
+                                <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
                             ) : (
-                                <><Copy className="w-3 h-3 mr-1" /> Copy</>
+                                <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy Message</>
                             )}
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 text-red-500 hover:text-red-600"
+                            className="h-9 w-9 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                             onClick={() => onDelete(template.id)}
                         >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                         </Button>
                     </div>
                 </CardContent>

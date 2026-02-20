@@ -11,7 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  Bell
+  Bell,
+  Zap // Added for the LeadFlow logo feel
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -38,29 +39,34 @@ export default function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-green-600 text-white shadow-lg"
+        className="lg:hidden fixed top-4 right-4 z-50 p-2 rounded-xl bg-slate-900 text-white shadow-xl border border-slate-700"
       >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       {/* Sidebar */}
       <aside
         className={`fixed lg:static top-0 left-0 h-full w-64 
-        bg-gradient-to-b from-slate-900 to-slate-800
-        border-r border-slate-800
+        bg-[#0f172a] text-slate-300
+        border-r border-slate-800/50
         p-6 flex flex-col justify-between
         transform transition-transform duration-300 z-40
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Top Section */}
         <div>
-          {/* Logo */}
-          <h1 className="text-xl font-semibold tracking-tight text-green-500 mb-10">
-            WhatsApp CRM
-          </h1>
+          {/* Logo Section */}
+          <div className="flex items-center gap-3 mb-10 px-2">
+            <div className="bg-green-600 p-2 rounded-lg shadow-lg shadow-green-900/20">
+              <Zap size={20} className="text-white fill-white" />
+            </div>
+            <h1 className="text-xl font-black tracking-tight text-white">
+              LeadFlow
+            </h1>
+          </div>
 
           {/* Navigation */}
-          <nav className="space-y-2">
+          <nav className="space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -70,14 +76,14 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200
                   ${
                     isActive
-                      ? 'bg-green-600 text-white shadow-md'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                      ? 'bg-green-600/10 text-green-500 border border-green-600/20'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 border border-transparent'
                   }`}
                 >
-                  <Icon size={18} />
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                   {item.name}
                 </Link>
               )
@@ -86,12 +92,12 @@ export default function Sidebar() {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-slate-700 pt-6">
+        <div className="border-t border-slate-800/50 pt-6">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-slate-700 hover:text-red-300 transition-all duration-200 w-full"
+            className="group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 w-full"
           >
-            <LogOut size={18} />
+            <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
             Logout
           </button>
         </div>
@@ -100,7 +106,7 @@ export default function Sidebar() {
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm lg:hidden z-30"
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-md lg:hidden z-30"
           onClick={() => setMobileOpen(false)}
         />
       )}

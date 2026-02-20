@@ -16,7 +16,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  FileText
+  Copy, // Added Copy icon
+  Check // Added Check icon for feedback
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
@@ -43,6 +44,7 @@ export default function ContactsPage() {
   const [search, setSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState('all')
   const [selectedContact, setSelectedContact] = useState(null)
+  const [copiedId, setCopiedId] = useState(null) // State for copy feedback
 
   // --- Pagination State ---
   const [currentPage, setCurrentPage] = useState(1)
@@ -52,7 +54,6 @@ export default function ContactsPage() {
     if (user) fetchContacts()
   }, [user])
 
-  // Reset to page 1 when searching or filtering
   useEffect(() => {
     setCurrentPage(1)
   }, [search, selectedTag])
@@ -74,6 +75,15 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // --- Copy Helper ---
+  const copyToClipboard = (e, phone, id) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(phone)
+    setCopiedId(id)
+    toast.success("Phone number copied!")
+    setTimeout(() => setCopiedId(null), 2000) // Reset icon after 2s
   }
 
   const handleDelete = async (e, contact) => {
@@ -109,7 +119,6 @@ export default function ContactsPage() {
     }
   }
 
-  // --- Filter Logic ---
   const filteredContacts = contacts.filter((contact) => {
     const searchTerm = search.toLowerCase().trim();
     const matchesSearch = contact.name?.toLowerCase().includes(searchTerm) || contact.phone?.includes(searchTerm);
@@ -117,7 +126,6 @@ export default function ContactsPage() {
     return matchesSearch && matchesTag;
   })
 
-  // --- Pagination Logic ---
   const totalPages = Math.max(1, Math.ceil(filteredContacts.length / itemsPerPage))
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedContacts = filteredContacts.slice(startIndex, startIndex + itemsPerPage)
@@ -228,6 +236,21 @@ export default function ContactsPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-1">
+                        {/* Copy Button */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-slate-400 hover:text-slate-600"
+                          onClick={(e) => copyToClipboard(e, contact.phone, contact.id)}
+                          title="Copy Number"
+                        >
+                          {copiedId === contact.id ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+
                         <a 
                           href={`https://wa.me/${contact.phone.replace(/\D/g, '')}`} 
                           target="_blank" 
@@ -321,7 +344,6 @@ export default function ContactsPage() {
         )}
       </div>
 
-      {/* 5. DIALOGS */}
       <ContactDetailDialog
         contact={selectedContact}
         open={!!selectedContact}
